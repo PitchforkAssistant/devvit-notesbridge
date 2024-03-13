@@ -1,190 +1,253 @@
-import {Devvit} from "@devvit/public-api";
-import {someRecurringTask} from "./handlers/jobs.js";
-import {validateDiceRoll} from "./handlers/validators.js";
-import {DEFAULTS, HELP_TEXTS, LABELS, OPTIONS} from "./constants.js";
-import {formActionPressed, formOnSubmit, menuActionPressed, menuLoggedOutPressed, menuMemberPressed, menuModActionPressed} from "./handlers/menus.js";
-import {onAppChanged, onCommentCreate, onCommentDelete, onCommentReport, onCommentSubmit, onCommentUpdate, onModAction, onModMail, onPostCreate, onPostDelete, onPostFlairUpdate, onPostReport, onPostSubmit, onPostUpdate} from "./handlers/triggers.js";
-import {customPost} from "./handlers/customPosts.js";
+import {Devvit, SettingScope} from "@devvit/public-api";
+import {onModAction} from "./handlers/onModAction.js";
+import {DEFAULTS, HELP_TEXTS, KEYS, LABELS, OPTIONS} from "./constants.js";
+import {validateToolboxLabel} from "./handlers/validateToolboxLabel.js";
+import {validateNativeLabel} from "./handlers/validateNativeLabel.js";
+import {validateLabelPairs} from "./handlers/validateLabelPairs.js";
+import {validateUsernameList} from "devvit-helpers";
 
-// Enable any Devvit features you might need.
 Devvit.configure({
     redditAPI: true,
-    kvStore: true,
-    media: false,
-    http: false,
 });
 
-// Custom post stuff
-Devvit.addCustomPostType(customPost);
-Devvit.addMenuItem({
-    location: "subreddit",
-    label: LABELS.CUSTOM_POST_BUTTON,
-    description: HELP_TEXTS.CUSTOM_POST_BUTTON,
-    onPress: formActionPressed,
-});
-export const submitPostFormKey = Devvit.createForm(
-    {
-        fields: [
-            {
-                type: "string",
-                name: "title",
-                label: LABELS.CUSTOM_POST_TITLE,
-                helpText: HELP_TEXTS.CUSTOM_POST_TITLE,
-            },
-        ],
-        title: LABELS.FORM,
-        acceptLabel: LABELS.FORM_ACCEPT,
-        cancelLabel: LABELS.FORM_CANCEL,
-    },
-    formOnSubmit
-);
-
-// Set up the configuration field presented to the user for each installation (subreddit) of the app.
-Devvit.addSettings([
-    {
-        type: "number",
-        name: "diceRoll",
-        label: LABELS.DICE_ROLL,
-        helpText: HELP_TEXTS.DICE_ROLL,
-        defaultValue: DEFAULTS.DICE_ROLL,
-        onValidate: validateDiceRoll,
-    },
-    {
-        type: "boolean",
-        name: "toggle",
-        label: LABELS.TOGGLE,
-        helpText: HELP_TEXTS.TOGGLE,
-        defaultValue: DEFAULTS.TOGGLE,
-    },
-    {
-        type: "select",
-        name: "dropdownSelect",
-        label: LABELS.DROPDOWN_SELECT,
-        helpText: HELP_TEXTS.DROPDOWN_SELECT,
-        defaultValue: DEFAULTS.SELECT,
-        options: OPTIONS.SELECT,
-    },
-    {
-        type: "select",
-        name: "multiSelect",
-        label: LABELS.MULTI_SELECT,
-        helpText: HELP_TEXTS.MULTI_SELECT,
-        defaultValue: DEFAULTS.SELECT,
-        options: OPTIONS.SELECT,
-        multiSelect: true,
-    },
-    {
-        type: "group",
-        label: LABELS.GROUP,
-        helpText: HELP_TEXTS.GROUP,
-        fields: [
-            {
-                type: "string",
-                name: "shortText",
-                label: LABELS.SHORT_TEXT,
-                helpText: HELP_TEXTS.SHORT_TEXT,
-            },
-            {
-                type: "paragraph",
-                name: "longText",
-                label: LABELS.LONG_TEXT,
-                helpText: HELP_TEXTS.LONG_TEXT,
-            },
-        ],
-    },
-]);
-
-// Set up the menu items added by the app.
-Devvit.addMenuItem({
-    location: "post",
-    label: LABELS.GENERAL_POST_ACTION,
-    description: HELP_TEXTS.GENERAL_POST_ACTION,
-    onPress: menuActionPressed,
-});
-Devvit.addMenuItem({
-    location: ["subreddit", "post", "comment"],
-    label: LABELS.LOGGED_OUT_ACTION,
-    forUserType: "loggedOut",
-    onPress: menuLoggedOutPressed,
-});
-Devvit.addMenuItem({
-    location: ["subreddit", "post", "comment"],
-    label: LABELS.MOD_ACTION,
-    forUserType: "moderator",
-    onPress: menuModActionPressed,
-});
-Devvit.addMenuItem({
-    location: ["subreddit", "post", "comment"],
-    label: LABELS.MEMBER_ACTION,
-    forUserType: "member",
-    onPress: menuMemberPressed,
-});
-
-// Define scheduler jobs
-Devvit.addSchedulerJob({
-    name: "someRecurringTask",
-    onRun: someRecurringTask,
-});
-
-// AppInstall and AppUpgrade are useful for scheduling recurring actions.
-Devvit.addTrigger({
-    events: ["AppInstall", "AppUpgrade"],
-    onEvent: onAppChanged,
-});
-
-// Register any of the other triggers that you want to use. You can register multiple triggers for the same event handler.
-// These ones are here as examples, they could technically be combined into one trigger with the onTrigger function as their handler.
-Devvit.addTrigger({
-    event: "PostSubmit",
-    onEvent: onPostSubmit,
-});
-Devvit.addTrigger({
-    event: "PostCreate",
-    onEvent: onPostCreate,
-});
-Devvit.addTrigger({
-    event: "PostUpdate",
-    onEvent: onPostUpdate,
-});
-Devvit.addTrigger({
-    event: "PostDelete",
-    onEvent: onPostDelete,
-});
-Devvit.addTrigger({
-    event: "PostReport",
-    onEvent: onPostReport,
-});
-Devvit.addTrigger({
-    event: "PostFlairUpdate",
-    onEvent: onPostFlairUpdate,
-});
-Devvit.addTrigger({
-    event: "CommentSubmit",
-    onEvent: onCommentSubmit,
-});
-Devvit.addTrigger({
-    event: "CommentCreate",
-    onEvent: onCommentCreate,
-});
-Devvit.addTrigger({
-    event: "CommentUpdate",
-    onEvent: onCommentUpdate,
-});
-Devvit.addTrigger({
-    event: "CommentDelete",
-    onEvent: onCommentDelete,
-});
-Devvit.addTrigger({
-    event: "CommentReport",
-    onEvent: onCommentReport,
-});
-Devvit.addTrigger({
-    event: "ModMail",
-    onEvent: onModMail,
-});
 Devvit.addTrigger({
     event: "ModAction",
     onEvent: onModAction,
 });
+
+Devvit.addSettings([
+    {
+        type: "string",
+        name: KEYS.IGNORED_USERS,
+        label: LABELS.IGNORED_USERS,
+        helpText: HELP_TEXTS.IGNORED_USERS,
+        defaultValue: DEFAULTS.IGNORED_USERS,
+        scope: SettingScope.Installation,
+        onValidate: validateUsernameList,
+    },
+    {
+        type: "group",
+        label: LABELS.N2T_GROUP,
+        helpText: HELP_TEXTS.N2T_GROUP,
+        fields: [
+            {
+                type: "boolean",
+                name: KEYS.N2T_ENABLED,
+                label: LABELS.N2T_ENABLED,
+                defaultValue: DEFAULTS.N2T_ENABLED,
+                scope: SettingScope.Installation,
+            },
+            // TODO: Readd N2T_MAP_GROUP once the issue with values deeper than 1 level deep not being validated is fixed
+            // {
+            //     type: "group",
+            //     label: LABELS.N2T_MAP_GROUP,
+            //     helpText: HELP_TEXTS.N2T_MAP_GROUP,
+            //     fields: [
+            {
+                type: "string",
+                name: KEYS.N2T_MAP_BOT_BAN,
+                label: LABELS.N2T_MAP_BOT_BAN,
+                helpText: HELP_TEXTS.N2T_MAP_BOT_BAN,
+                defaultValue: DEFAULTS.N2T_MAP_BOT_BAN,
+                onValidate: validateToolboxLabel,
+                scope: SettingScope.Installation,
+            },
+            {
+                type: "string",
+                name: KEYS.N2T_MAP_PERMA_BAN,
+                label: LABELS.N2T_MAP_PERMA_BAN,
+                helpText: HELP_TEXTS.N2T_MAP_PERMA_BAN,
+                defaultValue: DEFAULTS.N2T_MAP_PERMA_BAN,
+                onValidate: validateToolboxLabel,
+                scope: SettingScope.Installation,
+            },
+            {
+                type: "string",
+                name: KEYS.N2T_MAP_BAN,
+                label: LABELS.N2T_MAP_BAN,
+                helpText: HELP_TEXTS.N2T_MAP_BAN,
+                defaultValue: DEFAULTS.N2T_MAP_BAN,
+                onValidate: validateToolboxLabel,
+                scope: SettingScope.Installation,
+            },
+            {
+                type: "string",
+                name: KEYS.N2T_MAP_ABUSE_WARNING,
+                label: LABELS.N2T_MAP_ABUSE_WARNING,
+                helpText: HELP_TEXTS.N2T_MAP_ABUSE_WARNING,
+                defaultValue: DEFAULTS.N2T_MAP_ABUSE_WARNING,
+                onValidate: validateToolboxLabel,
+                scope: SettingScope.Installation,
+            },
+            {
+                type: "string",
+                name: KEYS.N2T_MAP_SPAM_WARNING,
+                label: LABELS.N2T_MAP_SPAM_WARNING,
+                helpText: HELP_TEXTS.N2T_MAP_SPAM_WARNING,
+                defaultValue: DEFAULTS.N2T_MAP_SPAM_WARNING,
+                onValidate: validateToolboxLabel,
+                scope: SettingScope.Installation,
+            },
+            {
+                type: "string",
+                name: KEYS.N2T_MAP_SPAM_WATCH,
+                label: LABELS.N2T_MAP_SPAM_WATCH,
+                helpText: HELP_TEXTS.N2T_MAP_SPAM_WATCH,
+                defaultValue: DEFAULTS.N2T_MAP_SPAM_WATCH,
+                onValidate: validateToolboxLabel,
+                scope: SettingScope.Installation,
+            },
+            {
+                type: "string",
+                name: KEYS.N2T_MAP_SOLID_CONTRIBUTOR,
+                label: LABELS.N2T_MAP_SOLID_CONTRIBUTOR,
+                helpText: HELP_TEXTS.N2T_MAP_SOLID_CONTRIBUTOR,
+                defaultValue: DEFAULTS.N2T_MAP_SOLID_CONTRIBUTOR,
+                onValidate: validateToolboxLabel,
+                scope: SettingScope.Installation,
+            },
+            {
+                type: "string",
+                name: KEYS.N2T_MAP_HELPFUL_USER,
+                label: LABELS.N2T_MAP_HELPFUL_USER,
+                helpText: HELP_TEXTS.N2T_MAP_HELPFUL_USER,
+                defaultValue: DEFAULTS.N2T_MAP_HELPFUL_USER,
+                onValidate: validateToolboxLabel,
+                scope: SettingScope.Installation,
+            },
+            {
+                type: "string",
+                name: KEYS.N2T_MAP_NONE,
+                label: LABELS.N2T_MAP_NONE,
+                helpText: HELP_TEXTS.N2T_MAP_NONE,
+                defaultValue: DEFAULTS.N2T_MAP_NONE,
+                onValidate: validateToolboxLabel,
+            },
+            //     ],
+            // },
+        ],
+    },
+    {
+        type: "group",
+        label: LABELS.T2N_GROUP,
+        helpText: HELP_TEXTS.T2N_GROUP,
+        fields: [
+            {
+                type: "boolean",
+                name: "a",
+                label: LABELS.T2N_ENABLED,
+                helpText: HELP_TEXTS.T2N_ENABLED,
+                defaultValue: DEFAULTS.T2N_ENABLED,
+                scope: SettingScope.Installation,
+            },
+            // TODO: Readd T2N_MAP_GROUP once the issue with values deeper than 1 level deep not being validated is fixed
+            // {
+            //     type: "group",
+            //     label: LABELS.T2N_MAP_GROUP,
+            //     helpText: HELP_TEXTS.T2N_MAP_GROUP,
+            //     fields: [
+            {
+                type: "select",
+                name: KEYS.T2N_MAP_BOTBAN,
+                label: LABELS.T2N_MAP_BOTBAN,
+                helpText: HELP_TEXTS.T2N_MAP_BOTBAN,
+                defaultValue: DEFAULTS.T2N_MAP_BOTBAN,
+                options: OPTIONS.T2N_MAP,
+                onValidate: validateNativeLabel,
+                multiSelect: false,
+                scope: SettingScope.Installation,
+            },
+            {
+                type: "select",
+                name: KEYS.T2N_MAP_PERMBAN,
+                label: LABELS.T2N_MAP_PERMBAN,
+                helpText: HELP_TEXTS.T2N_MAP_PERMBAN,
+                defaultValue: DEFAULTS.T2N_MAP_PERMBAN,
+                options: OPTIONS.T2N_MAP,
+                onValidate: validateNativeLabel,
+                multiSelect: false,
+                scope: SettingScope.Installation,
+            },
+            {
+                type: "select",
+                name: KEYS.T2N_MAP_BAN,
+                label: LABELS.T2N_MAP_BAN,
+                helpText: HELP_TEXTS.T2N_MAP_BAN,
+                defaultValue: DEFAULTS.T2N_MAP_BAN,
+                options: OPTIONS.T2N_MAP,
+                onValidate: validateNativeLabel,
+                multiSelect: false,
+                scope: SettingScope.Installation,
+            },
+            {
+                type: "select",
+                name: KEYS.T2N_MAP_ABUSEWARN,
+                label: LABELS.T2N_MAP_ABUSEWARN,
+                helpText: HELP_TEXTS.T2N_MAP_ABUSEWARN,
+                defaultValue: DEFAULTS.T2N_MAP_ABUSEWARN,
+                options: OPTIONS.T2N_MAP,
+                onValidate: validateNativeLabel,
+                multiSelect: false,
+                scope: SettingScope.Installation,
+            },
+            {
+                type: "select",
+                name: KEYS.T2N_MAP_SPAMWARN,
+                label: LABELS.T2N_MAP_SPAMWARN,
+                helpText: HELP_TEXTS.T2N_MAP_SPAMWARN,
+                defaultValue: DEFAULTS.T2N_MAP_SPAMWARN,
+                options: OPTIONS.T2N_MAP,
+                onValidate: validateNativeLabel,
+                multiSelect: false,
+                scope: SettingScope.Installation,
+            },
+            {
+                type: "select",
+                name: KEYS.T2N_MAP_SPAMWATCH,
+                label: LABELS.T2N_MAP_SPAMWATCH,
+                helpText: HELP_TEXTS.T2N_MAP_SPAMWATCH,
+                defaultValue: DEFAULTS.T2N_MAP_SPAMWATCH,
+                options: OPTIONS.T2N_MAP,
+                onValidate: validateNativeLabel,
+                multiSelect: false,
+                scope: SettingScope.Installation,
+            },
+            {
+                type: "select",
+                name: KEYS.T2N_MAP_GOODUSER,
+                label: LABELS.T2N_MAP_GOODUSER,
+                helpText: HELP_TEXTS.T2N_MAP_GOODUSER,
+                defaultValue: DEFAULTS.T2N_MAP_GOODUSER,
+                options: OPTIONS.T2N_MAP,
+                onValidate: validateNativeLabel,
+                multiSelect: false,
+                scope: SettingScope.Installation,
+            },
+            {
+                type: "select",
+                name: KEYS.T2N_MAP_NONE,
+                label: LABELS.T2N_MAP_NONE,
+                helpText: HELP_TEXTS.T2N_MAP_NONE,
+                defaultValue: DEFAULTS.T2N_MAP_NONE,
+                options: OPTIONS.T2N_MAP,
+                onValidate: validateNativeLabel,
+                multiSelect: false,
+                scope: SettingScope.Installation,
+            },
+            {
+                type: "paragraph",
+                name: KEYS.T2N_MAP_CUSTOM,
+                label: LABELS.T2N_MAP_CUSTOM,
+                helpText: HELP_TEXTS.T2N_MAP_CUSTOM,
+                defaultValue: DEFAULTS.T2N_MAP_CUSTOM,
+                onValidate: validateLabelPairs,
+                placeholder: "helpfuluser:HELPFUL_USER",
+                scope: SettingScope.Installation,
+            },
+            //     ],
+            // },
+        ],
+    },
+]);
 
 export default Devvit;
